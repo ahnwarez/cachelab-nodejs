@@ -1,3 +1,8 @@
+import { createReadStream } from "node:fs";
+import readline from "readline";
+import path from "node:path";
+import url from "url";
+
 import { initCache, access } from "./cache.js";
 
 const argc = process.argv.length;
@@ -21,12 +26,22 @@ let hits = 0;
 let misses = 0;
 let evictions = 0;
 
-// For each address in your trace file:
-const { cache: newCache, outcome } = access({
-  cache,
-  address: BigInt("0x1234"),
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
+const fileStream = createReadStream(path.join(__dirname, f), "utf8");
+const rl = readline.createInterface({
+  input: fileStream,
+  crlfDelay: Infinity,
 });
-cache = newCache;
+
+for await (const line of rl) {
+  // For each address in your trace file:
+  const { cache: newCache, outcome } = access({
+    cache,
+    address: BigInt("0x1234"),
+  });
+  cache = newCache;
+}
+
 if (outcome.hit) hits++;
 if (outcome.miss) misses++;
 if (outcome.eviction) evictions++;
