@@ -34,16 +34,28 @@ const rl = readline.createInterface({
 });
 
 for await (const line of rl) {
-  // For each address in your trace file:
-  const { cache: newCache, outcome } = access({
-    cache,
-    address: BigInt("0x1234"),
-  });
-  cache = newCache;
-}
+  if (line.startsWith(" M") || line.startsWith(" S") || line.startsWith(" L")) {
+    const [_, addressAndByte] = line.trimStart().split(" ");
+    const [address] = addressAndByte.split(",");
+    const result = access({
+      cache,
+      address: BigInt(address),
+    });
+    cache = result.cache;
 
-if (outcome.hit) hits++;
-if (outcome.miss) misses++;
-if (outcome.eviction) evictions++;
+    const printMiss = result.outcome.miss ? "miss" : undefined;
+    const printHit = result.outcome.hit ? "hit" : undefined;
+    const printEviction = result.outcome.eviction ? "eviction" : undefined;
+    const outcome = [printMiss, printHit, printEviction]
+      .filter(Boolean)
+      .join(" ");
+
+    console.log(line.trimStart(), outcome);
+
+    if (result.outcome.hit) hits++;
+    if (result.outcome.miss) misses++;
+    if (result.outcome.eviction) evictions++;
+  }
+}
 
 console.log(`hits: ${hits} misses: ${misses} evictions: ${evictions}`);
