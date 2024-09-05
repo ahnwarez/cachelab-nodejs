@@ -37,9 +37,10 @@ for await (const line of rl) {
   if (line.startsWith(" M") || line.startsWith(" S") || line.startsWith(" L")) {
     const [_, addressAndByte] = line.trimStart().split(" ");
     const [address] = addressAndByte.split(",");
+
     const result = access({
       cache,
-      address: BigInt(address),
+      address: BigInt(`0x${address}`),
     });
     cache = result.cache;
 
