@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { initCache, access } from "./index";
+import { initCache, access } from "./cache";
 
 describe("cache", () => {
   it("access", () => {
