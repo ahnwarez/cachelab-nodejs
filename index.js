@@ -1,59 +1,24 @@
-export function initCache({ s, E, b }) {
-  return {
-    sets: Array(2 ** s)
-      .fill()
-      .map(() =>
-        Array(E)
-          .fill()
-          .map(() => ({
-            valid: false,
-            tag: 0n,
-          })),
-      ),
-    s,
-    E,
-    b,
-  };
+const argc = process.argv.length;
+
+if (argc < 6) {
+  console.log(`Usage:
+-s <Set Index>
+-E <Cache lines>
+-b <Block offest>
+-f <file name>`);
 }
 
-export function access({ cache, address }) {
-  const { sets, s, b } = cache;
-  const setIndex = (BigInt(address) >> BigInt(b)) & ((1n << BigInt(s)) - 1n);
-  const tag = BigInt(address) >> BigInt(s + b);
+let cache = initCache({ s: 4, E: 1, b: 4 });
+let hits = 0;
+let misses = 0;
+let evictions = 0;
 
-  const setNumber = Number(setIndex);
-  const set = sets[setNumber];
-
-  // Check for hit
-  for (let i = 0; i < set.length; i++) {
-    if (set[i].valid && set[i].tag === tag) {
-      return {
-        ...cache,
-        outcome: { hit: true, miss: false, eviction: false },
-      };
-    }
-  }
-
-  // It's a miss, find an empty line or evict
-  const emptyLineIndex = set.findIndex((line) => !line.valid);
-  const newCache = {
-    ...cache,
-    sets: [...sets],
-  };
-  newCache.sets[setNumber] = [...set];
-
-  if (emptyLineIndex !== -1) {
-    newCache.sets[setNumber][emptyLineIndex] = { valid: true, tag };
-    return {
-      ...newCache,
-      outcome: { hit: false, miss: true, eviction: false },
-    };
-  } else {
-    // Eviction (assuming LRU policy, we evict the first line)
-    newCache.sets[setNumber][0] = { valid: true, tag };
-    return {
-      ...newCache,
-      outcome: { hit: false, miss: true, eviction: true },
-    };
-  }
-}
+// For each address in your trace file:
+const { cache: newCache, outcome } = access({
+  cache,
+  address: BigInt("0x1234"),
+});
+cache = newCache;
+if (outcome.hit) hits++;
+if (outcome.miss) misses++;
+if (outcome.eviction) evictions++;
