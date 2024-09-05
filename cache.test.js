@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 
 import { initCache, access } from "./index";
 
-describe("E = 1", () => {
+describe("cache", () => {
   it("access", () => {
     const s = 2;
     const b = 1;
