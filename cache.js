@@ -28,7 +28,11 @@ export function access({ cache, address }) {
   for (let i = 0; i < set.length; i++) {
     if (set[i].valid && set[i].tag === tag) {
       return {
-        ...cache,
+        cache: {
+          s,
+          b,
+          sets,
+        },
         outcome: { hit: true, miss: false, eviction: false },
       };
     }
@@ -37,7 +41,11 @@ export function access({ cache, address }) {
   // It's a miss, find an empty line or evict
   const emptyLineIndex = set.findIndex((line) => !line.valid);
   const newCache = {
-    ...cache,
+    cache: {
+      s,
+      b,
+      sets,
+    },
     sets: [...sets],
   };
   newCache.sets[setNumber] = [...set];
@@ -45,14 +53,22 @@ export function access({ cache, address }) {
   if (emptyLineIndex !== -1) {
     newCache.sets[setNumber][emptyLineIndex] = { valid: true, tag };
     return {
-      ...newCache,
+      cache: {
+        s,
+        b,
+        sets,
+      },
       outcome: { hit: false, miss: true, eviction: false },
     };
   } else {
     // Eviction (assuming LRU policy, we evict the first line)
     newCache.sets[setNumber][0] = { valid: true, tag };
     return {
-      ...newCache,
+      cache: {
+        s,
+        b,
+        sets,
+      },
       outcome: { hit: false, miss: true, eviction: true },
     };
   }
