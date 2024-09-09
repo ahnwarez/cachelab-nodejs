@@ -16,7 +16,20 @@ export function initCache({ s, E, b }) {
   };
 }
 
-export function access({ cache, address }) {
+export function load(cache, address) {
+  return access(cache, address);
+}
+
+export function store(cache, address) {
+  return access(cache, address);
+}
+
+export function modify(cache, address) {
+  const nextCache = access(cache, address);
+  return access(nextCache.cache, address);
+}
+
+function access(cache, address) {
   const { sets, s, b } = cache;
   const setIndex = (BigInt(address) >> BigInt(b)) & ((1n << BigInt(s)) - 1n);
   const tag = BigInt(address) >> BigInt(s + b);

@@ -1,9 +1,26 @@
 import { describe, it, expect } from "vitest";
 
-import { initCache, access } from "./cache";
+import { initCache, load, store, modify } from "./cache";
 
 describe("cache", () => {
-  it("access", () => {
+  it("M miss", () => {
+    const s = 4;
+    const b = 4;
+    const E = 1;
+    const address = 0xf;
+
+    let cache = initCache({ s, b, E });
+
+    cache = modify(cache, address);
+    expect(cache).toStrictEqual(
+      expect.objectContaining({
+        cache: { s: s, b: b, sets: expect.anything() },
+        outcome: { miss: false, hit: true, eviction: false },
+      }),
+    );
+  });
+
+  it("S miss", () => {
     const s = 2;
     const b = 1;
     const E = 1;
@@ -11,18 +28,29 @@ describe("cache", () => {
 
     let cache = initCache({ s, b, E });
 
-    cache = access({ cache, address });
+    cache = store(cache, address);
     expect(cache).toStrictEqual(
       expect.objectContaining({
-        s: s,
-        b: b,
+        cache: { s: s, b: b, sets: expect.anything() },
         outcome: { miss: true, hit: false, eviction: false },
       }),
     );
+  });
 
-    expect(access({ cache, address })).toStrictEqual(
+  it("L miss", () => {
+    const s = 2;
+
+    const b = 1;
+    const E = 1;
+    const address = 0xf;
+
+    let cache = initCache({ s, b, E });
+
+    cache = load(cache, address);
+    expect(cache).toStrictEqual(
       expect.objectContaining({
-        outcome: { miss: false, hit: true, eviction: false },
+        cache: { s: s, b: b, sets: expect.anything() },
+        outcome: { miss: true, hit: false, eviction: false },
       }),
     );
   });
