@@ -110,18 +110,16 @@ void access(Cache *c, uint64_t address) {
     empty_line_index = i;
 
   c->misses++;
-  printf("%d\n", empty_line_index);
+
   if (empty_line_index != -1) {
     // it's a miss
     c->sets[setIndex][empty_line_index].valid = true;
     c->sets[setIndex][empty_line_index].tag = tag;
-    return;
   } else {
-    // miss and evict
-    set[0].valid = true;
-    set[0].tag = tag;
+    // evict
+    c->sets[setIndex][0].valid = true;
+    c->sets[setIndex][0].tag = tag;
     c->evictions++;
-    return;
   }
 }
 
