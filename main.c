@@ -142,23 +142,65 @@ void access(Cache *c, uint64_t address) {
   }
 }
 
+uint8_t parse(char *line, char *instruction, uint64_t *address) {
+
+  if (line[0] == 'I' || line[0] == '\n')
+    return 0;
+
+  // skip the first whitespace
+  uint64_t char_index = 1;
+  *instruction = line[char_index];
+
+  char digits[100];
+  // skip the second whitespace and start consuming the address until
+  // we encounter a comma
+  uint8_t characters_to_skip = 3;
+  char_index = characters_to_skip;
+  while ((line[char_index] != ',')) {
+    digits[char_index - characters_to_skip] = line[char_index];
+    char_index++;
+  }
+
+  digits[char_index] = '\0';
+  char *endptr;
+  // Convert the string to an integer with base 16 (hexadecimal)
+  *address = strtol(digits, &endptr, 16);
+
+  // Check if the conversion was successful
+  if (*endptr == '\0') {
+    return 0;
+  } else {
+    printf("Invalid hexadecimal input: %s\n", digits);
+    return 1;
+  }
+}
+
 int main(void) {
   Cache c;
-  uint8_t s = 2;
-  uint8_t E = 2;
-  uint8_t b = 6;
+  uint8_t s = 4;
+  uint8_t E = 1;
+  uint8_t b = 4;
   makeCache(s, E, b, &c);
 
-  access(&c, 0x10);
-  access(&c, 0x20);
-  access(&c, 0x20);
-  access(&c, 0x22);
-  access(&c, 0x18);
-  access(&c, 0x110);
-  access(&c, 0x210);
-  access(&c, 0x12);
-  access(&c, 0x12);
-  printCache(s, E, &c);
+  FILE *fd = fopen("traces/yi.trace", "r");
+  char line[1000];
+
+  while ((fgets(line, sizeof(line), fd)) != NULL) {
+    char instruction;
+    uint64_t address;
+    uint8_t status = parse(line, &instruction, &address);
+    if (status > 0) {
+      return 1;
+    }
+
+    access(&c, address);
+    if (instruction == 'M') {
+      access(&c, address);
+    }
+    printf("%c %llu\n", instruction, address);
+  }
+
+  // printCache(s, E, &c);
   printf("hits: %u misses: %u evictions: %u\n", c.hits, c.misses, c.evictions);
 
   cache_delete(&c);
