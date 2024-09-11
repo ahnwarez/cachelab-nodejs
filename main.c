@@ -65,6 +65,25 @@ void makeCache(uint8_t s, uint8_t E, uint8_t b, Cache *c) {
   c->evictions = 0;
 }
 
+void cache_delete(Cache *c) {
+  uint8_t num_sets = 1 << c->s;
+
+  if (c->sets == NULL) {
+    perror("Memory allocation for sets failed!\n");
+    return;
+  }
+  // allocate memory of each set
+  for (uint8_t i = 0; i < num_sets; i++) {
+    free(c->sets[i]);
+    if (c->sets[i] == NULL) {
+      fprintf(stderr, "Memory allocation for sets %d failed!\n", i);
+      return;
+    }
+  }
+
+  free(c->sets);
+}
+
 void printCache(uint8_t s, uint8_t E, Cache *c) {
   uint8_t num_sets = 1 << s;
 
@@ -125,10 +144,11 @@ void access(Cache *c, uint64_t address) {
 
 int main(void) {
   Cache c;
-  uint8_t s = 4;
-  uint8_t E = 1;
-  uint8_t b = 4;
+  uint8_t s = 2;
+  uint8_t E = 2;
+  uint8_t b = 6;
   makeCache(s, E, b, &c);
+
   access(&c, 0x10);
   access(&c, 0x20);
   access(&c, 0x20);
@@ -141,6 +161,7 @@ int main(void) {
   printCache(s, E, &c);
   printf("hits: %u misses: %u evictions: %u\n", c.hits, c.misses, c.evictions);
 
+  cache_delete(&c);
   return 0;
 }
 
